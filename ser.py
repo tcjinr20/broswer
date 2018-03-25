@@ -64,6 +64,7 @@ class WorkerThread(threading.Thread):
 
 
 def sendTo(arg):
+
     par=json.loads(arg)
     url = u"http://www.cigomo.com/api/addgood.php"
     try:

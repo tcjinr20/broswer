@@ -92,10 +92,10 @@ class MainWindow(QMainWindow):
 
         #让浏览器相应url地址的变化
         self.browser.urlChanged.connect(self.renew_urlbar)
-        self.browser.page().loadFinished.connect(self.get_html)
+        # self.browser.page().loadFinished.connect(self.get_html)
 
         # 指定打开界面的 URL
-        url = 'https://detail.1688.com/offer/522991160044.html'
+        url = 'http://www.1688.com'
         self.browser.setUrl(QUrl(url))
 
 
@@ -105,6 +105,7 @@ class MainWindow(QMainWindow):
         for t in txt.split("\r\n"):
             if t != '':
                 js =getCent(t)
+                print(t)
                 r=self.browser.page().runJavaScript(js)
 
 
