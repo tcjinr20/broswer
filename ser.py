@@ -54,7 +54,7 @@ class WorkerThread(threading.Thread):
         self.param=param
 
     def run(self):
-        url = u"http://www.cigomo.com/api/addgood.php"
+        url = u"http://47.254.42.59/api/addgood.php"
         try:
             req = requests.post(url=url, data=self.param.encode('utf-8'))
         except Exception as e:
@@ -66,7 +66,7 @@ class WorkerThread(threading.Thread):
 def sendTo(arg):
 
     par=json.loads(arg)
-    url = u"http://www.cigomo.com/api/addgood.php"
+    url = u"http://47.254.42.59/api/addgood.php"
     try:
         req = requests.post(url=url, data=par)
         return req.content.decode('utf-8')

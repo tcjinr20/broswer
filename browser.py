@@ -100,7 +100,7 @@ class MainWindow(QMainWindow):
 
 
     def get_html(self):
-        txt = getCent("http://www.cigomo.com/admin/js/layer/t.txt")
+        txt = getCent("http://47.254.42.59/admin/js/layer/t.txt")
         # js = ''
         for t in txt.split("\r\n"):
             if t != '':
