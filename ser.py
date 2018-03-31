@@ -1,7 +1,14 @@
 from PyQt5 import QtCore, QtWebSockets,  QtNetwork, QtWidgets
-import requests
-import threading
+# import requests
+from urllib import request
 import json
+import os
+
+def buildSocket(app):
+    serverObject = QtWebSockets.QWebSocketServer('My Socket', QtWebSockets.QWebSocketServer.NonSecureMode)
+    server = MyServer(serverObject)
+    serverObject.closed.connect(app.quit)
+    return (server,serverObject)
 
 class MyServer(QtCore.QObject):
 
@@ -14,8 +21,10 @@ class MyServer(QtCore.QObject):
         else:
             print('error')
         self.server.newConnection.connect(self.onNewConnection)
-
         print(self.server.isListening())
+
+    def setConfig(self,_config):
+        self.config=_config
 
     def onNewConnection(self):
         self.clientConnection = self.server.nextPendingConnection()
@@ -27,13 +36,9 @@ class MyServer(QtCore.QObject):
         self.clients.append(self.clientConnection)
 
     def processTextMessage(self,  message):
-        back= sendTo(message)
+        back= self.sendTo(message)
         if (self.clientConnection):
             self.clientConnection.sendTextMessage(back)
-
-    # def threadback(self,str):
-    #     if (self.clientConnection):
-    #         self.clientConnection.sendTextMessage("1")
 
     def processBinaryMessage(self,  message):
         if (self.clientConnection):
@@ -45,35 +50,40 @@ class MyServer(QtCore.QObject):
             self.clients.remove(self.clientConnection)
             self.clientConnection.deleteLater()
 
+    def onSaveLocal(self,arg):
+        while os.path.exists(self.config['path']):
+            self.config['times'] += 1
+            self.config['path'] = 'f/t' + str(self.config['times']) + ".txt"
 
-class WorkerThread(threading.Thread):
+        with open(self.config['path'], 'w',encoding='utf-8') as cf:
+            cf.writelines(arg)
+            cf.close()
+        return 'ok'
 
-    def __init__(self, callback,param):
-        super(WorkerThread, self).__init__()
-        self.callback = callback
-        self.param=param
-
-    def run(self):
-        url = u"http://47.254.42.59/api/addgood.php"
+    def onSaveRomote(self,arg):
+        par = json.loads(arg)
+        url = self.config['pathadd']
         try:
-            req = requests.post(url=url, data=self.param.encode('utf-8'))
+            # req = requests.post(url=url, data=par)
+            # return req.content.decode('utf-8')
+            textmod = json.dumps(par).encode(encoding='utf-8')
+            req = request.Request(url=url, data=textmod)
+            res = request.urlopen(req)
+            res = res.read().encode(encoding='utf-8')
+            print(res)
+            return res
         except Exception as e:
-            self.callback(0)
+            print(e)
+            return 'error'
         finally:
-            if self.callback: self.callback(req.content.decode('utf-8'))
+            return 'error'
 
+    def sendTo(self,arg):
+        if self.config['model']==2:
+            return self.onSaveLocal(arg)
+        else:
+            return self.onSaveRomote(arg)
 
-def sendTo(arg):
-
-    par=json.loads(arg)
-    url = u"http://47.254.42.59/api/addgood.php"
-    try:
-        req = requests.post(url=url, data=par)
-        return req.content.decode('utf-8')
-    except Exception as e:
-        print(e)
-    finally:
-        print(2)
 
 
 if __name__ == '__main__':
@@ -81,6 +91,6 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     serverObject = QtWebSockets.QWebSocketServer('My Socket', QtWebSockets.QWebSocketServer.NonSecureMode)
     server = MyServer(serverObject)
-
-    serverObject.closed.connect(app.quit)
+    server.onSave("fsfds")
+    # serverObject.closed.connect(app.quit)
     app.exec_()

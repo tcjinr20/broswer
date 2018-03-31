@@ -11,8 +11,7 @@ from PyQt5.QtWebChannel import QWebChannel
 import threading
 
 from PyQt5 import QtCore, QtWebSockets
-
-from ser import MyServer
+import ser
 
 import sys
 from urllib import request
@@ -24,12 +23,6 @@ def getCent(url):
         txt = data.decode('utf-8')
         return txt
 
-
-class CallHandler(QObject):
-
-    @pyqtSlot()
-    def myHello(self):
-        print('call received')
 
 
 
@@ -45,11 +38,16 @@ class MainWindow(QMainWindow):
         self.resize(900, 600)
 
         self.show()
-		
+        self.initui()
+        self.initdata()
+
+        # 指定打开界面的 URL
+        url = 'http://www.1688.com'
+        self.browser.setUrl(QUrl(url))
+
+    def initui(self):
         # 设置浏览器
         self.browser = QWebEngineView()
-
-
         # 添加浏览器到窗口中
         self.setCentralWidget(self.browser)
 
@@ -58,10 +56,20 @@ class MainWindow(QMainWindow):
         navigation_bar = QToolBar('Navigation')
         # 设定图标的大小
         navigation_bar.setIconSize(QSize(16, 16))
-        #添加导航栏到窗口中
+        # 添加导航栏到窗口中
         self.addToolBar(navigation_bar)
 
-        #QAction类提供了抽象的用户界面action，这些action可以被放置在窗口部件中
+        menubar = self.menuBar()
+        menubar.setNativeMenuBar(False)
+        fileMenu = menubar.addMenu('menu')
+        exitAction = QAction(QIcon('icons/penguin.png'), 'setting', self)
+        exitAction.setStatusTip('setting')
+        exitAction.triggered.connect(self.menu_setting)
+
+        # 将这个Action添加到fileMenu上
+        fileMenu.addAction(exitAction)
+
+        # QAction类提供了抽象的用户界面action，这些action可以被放置在窗口部件中
         # 添加前进、后退、停止加载和刷新的按钮
         back_button = QAction(QIcon('icons/back.png'), 'Back', self)
         next_button = QAction(QIcon('icons/next.png'), 'Forward', self)
@@ -69,6 +77,7 @@ class MainWindow(QMainWindow):
         reload_button = QAction(QIcon('icons/renew.png'), 'reload', self)
         open_dialog = QAction(QIcon('icons/renew.png'), 'dialog', self)
 
+        # setting_bar.addAction(set_btn)
         back_button.triggered.connect(self.browser.back)
         next_button.triggered.connect(self.browser.forward)
         stop_button.triggered.connect(self.browser.stop)
@@ -82,7 +91,7 @@ class MainWindow(QMainWindow):
         navigation_bar.addAction(reload_button)
         navigation_bar.addAction(open_dialog)
 
-        #添加URL地址栏
+        # 添加URL地址栏
         self.urlbar = QLineEdit()
         # 让地址栏能响应回车按键信号
         self.urlbar.returnPressed.connect(self.navigate_to_url)
@@ -90,24 +99,49 @@ class MainWindow(QMainWindow):
         navigation_bar.addSeparator()
         navigation_bar.addWidget(self.urlbar)
 
-        #让浏览器相应url地址的变化
+        # 让浏览器相应url地址的变化
         self.browser.urlChanged.connect(self.renew_urlbar)
         # self.browser.page().loadFinished.connect(self.get_html)
+    def initdata(self):
+        self.config={}
+        (self.server,self.obj)= ser.buildSocket(app)
+        self.config['model'] = 2
+        self.config['pathtxt'] = "http://www.shop.com/admin/js/layer/t.txt"
+        self.config['pathadd'] = "http://www.shop.com/api/addgood.php"
+        self.config['path'] = "f/t.txt"
+        self.config['times'] = 0
 
-        # 指定打开界面的 URL
-        url = 'http://www.1688.com'
-        self.browser.setUrl(QUrl(url))
+        self.server.setConfig(self.config)
 
+    def menu_setting(self):
+        dia = QDialog(self)
+        dia.setWindowTitle("配置数据")
+        dia.setModal(True)
+        grid=QGridLayout()
+        dia.setLayout(grid)
+        self.group=QButtonGroup()
+        remote = QRadioButton("远程")
+        local=QRadioButton("本地")
+
+        remote.toggled.connect(self.changeRadio1)
+        remote.isChecked()
+        self.group.addButton(remote,1)
+        self.group.addButton(local,2)
+        grid.addWidget(remote,0,1)
+        grid.addWidget(local,0,2)
+        dia.show()
+
+    def changeRadio1(self):
+        self.config['model'] = self.group.checkedId()
+        self.server.setConfig(self.config)
 
     def get_html(self):
-        txt = getCent("http://47.254.42.59/admin/js/layer/t.txt")
+        txt = getCent(self.config['pathtxt'])
         # js = ''
         for t in txt.split("\r\n"):
             if t != '':
                 js =getCent(t)
-                print(t)
                 r=self.browser.page().runJavaScript(js)
-
 
     def navigate_to_url(self):
         q = QUrl(self.urlbar.text())
@@ -120,18 +154,13 @@ class MainWindow(QMainWindow):
         self.urlbar.setText(q.toString())
         self.urlbar.setCursorPosition(0)
 
-def buildSocket(app):
-    serverObject = QtWebSockets.QWebSocketServer('My Socket', QtWebSockets.QWebSocketServer.NonSecureMode)
-    server = MyServer(serverObject)
-    serverObject.closed.connect(app.quit)
-    return (serverObject,server)
 
-# 创建应用
-app = QApplication(sys.argv)
-# 创建主窗口
-window = MainWindow()
-t=buildSocket(app)
-# 显示窗口
-window.show()
-# 运行应用，并监听事件
-app.exec_()
+if __name__ =="__main__":
+    # 创建应用
+    app = QApplication(sys.argv)
+    # 创建主窗口
+    window = MainWindow()
+    # 显示窗口
+    window.show()
+    # 运行应用，并监听事件
+    app.exec_()
