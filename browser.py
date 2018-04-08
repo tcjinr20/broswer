@@ -7,6 +7,8 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtWebEngineWidgets import *
+import configparser
+from lib.ui import CiSetting
 from PyQt5.QtWebChannel import QWebChannel
 import threading
 
@@ -23,26 +25,26 @@ def getCent(url):
         txt = data.decode('utf-8')
         return txt
 
-
-
-
 class MainWindow(QMainWindow):
     # noinspection PyUnresolvedReferences
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self,_config):
+        super().__init__()
         # 设置窗口标题
         self.setWindowTitle('My Browser')
         # 设置窗口图标
         self.setWindowIcon(QIcon('icons/penguin.png'))
         # 设置窗口大小900*600
         self.resize(900, 600)
-
+        self.config = _config
         self.show()
         self.initui()
         self.initdata()
 
         # 指定打开界面的 URL
-        url = 'http://www.1688.com'
+        self.open()
+
+    def open(self):
+        url = self.config.get("mainurl")
         self.browser.setUrl(QUrl(url))
 
     def initui(self):
@@ -75,7 +77,7 @@ class MainWindow(QMainWindow):
         next_button = QAction(QIcon('icons/next.png'), 'Forward', self)
         stop_button = QAction(QIcon('icons/cross.png'), 'stop', self)
         reload_button = QAction(QIcon('icons/renew.png'), 'reload', self)
-        open_dialog = QAction(QIcon('icons/renew.png'), 'dialog', self)
+        open_dialog = QAction(QIcon('icons/clipboard.png'), 'dialog', self)
 
         # setting_bar.addAction(set_btn)
         back_button.triggered.connect(self.browser.back)
@@ -102,42 +104,22 @@ class MainWindow(QMainWindow):
         # 让浏览器相应url地址的变化
         self.browser.urlChanged.connect(self.renew_urlbar)
         # self.browser.page().loadFinished.connect(self.get_html)
-    def initdata(self):
-        self.config={}
-        (self.server,self.obj)= ser.buildSocket(app)
-        self.config['model'] = 2
-        self.config['pathtxt'] = "http://www.shop.com/admin/js/layer/t.txt"
-        self.config['pathadd'] = "http://www.shop.com/api/addgood.php"
-        self.config['path'] = "f/t.txt"
-        self.config['times'] = 0
 
-        self.server.setConfig(self.config)
+    def initdata(self):
+        # (self.server,self.obj)= ser.buildSocket(app)
+        self.proxy= ser.ServerProxy()
+        self.proxy.globalProxy({'ip':'211.159.177.212','port':'3128'})
+        # self.proxy.localProxy(self.browser)
+
 
     def menu_setting(self):
-        dia = QDialog(self)
-        dia.setWindowTitle("配置数据")
-        dia.setModal(True)
-        grid=QGridLayout()
-        dia.setLayout(grid)
-        self.group=QButtonGroup()
-        remote = QRadioButton("远程")
-        local=QRadioButton("本地")
+        if self.dia is None:
+            self.dia = CiSetting(self.config)
+        self.dia.show()
 
-        remote.toggled.connect(self.changeRadio1)
-        remote.isChecked()
-        self.group.addButton(remote,1)
-        self.group.addButton(local,2)
-        grid.addWidget(remote,0,1)
-        grid.addWidget(local,0,2)
-        dia.show()
-
-    def changeRadio1(self):
-        self.config['model'] = self.group.checkedId()
-        self.server.setConfig(self.config)
 
     def get_html(self):
-        txt = getCent(self.config['pathtxt'])
-        # js = ''
+        txt = getCent(self.config.get('pathtxt'))
         for t in txt.split("\r\n"):
             if t != '':
                 js =getCent(t)
@@ -155,12 +137,50 @@ class MainWindow(QMainWindow):
         self.urlbar.setCursorPosition(0)
 
 
+
+class CiConfig():
+
+    def __init__(self):
+        self.__change = False
+        self.default="setting"
+        self.file='ci.ini'
+        self.config = configparser.ConfigParser()
+        self.config.read(self.file)
+
+        if self.config.has_section(self.default) is False:
+            self.config.add_section(self.default)
+            self.set("model", '2')
+            self.set("pathadd", 'http://www.shop.com/api/addgood.php')
+            self.set("pathtxt", 'http://www.shop.com/admin/js/layer/t.txt')
+            self.set("path", 'f/t.txt')
+            self.set("mainurl", 'http://www.1688.com')
+            self.set("times", '0')
+
+    def set(self,key,val):
+        self.__change=True
+        self.config.set(self.default,key,val)
+
+    def get(self,key):
+        return self.config.get(self.default,key)
+
+    def save(self):
+        if self.__change:
+            self.config.write(open(self.file, "w"))
+            self.__change=False
+
+
 if __name__ =="__main__":
-    # 创建应用
-    app = QApplication(sys.argv)
+    #创建应用
+
     # 创建主窗口
-    window = MainWindow()
-    # 显示窗口
+
+    app = QApplication(sys.argv)
+
+    window = MainWindow(CiConfig())
     window.show()
+    sys.exit(app.exec_())
+    # 显示窗口
+
     # 运行应用，并监听事件
-    app.exec_()
+
+    # saveConfig([["setting",'notify','d'],["setting",'nem','fdgd']])

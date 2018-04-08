@@ -51,18 +51,21 @@ class MyServer(QtCore.QObject):
             self.clientConnection.deleteLater()
 
     def onSaveLocal(self,arg):
-        while os.path.exists(self.config['path']):
-            self.config['times'] += 1
-            self.config['path'] = 'f/t' + str(self.config['times']) + ".txt"
 
-        with open(self.config['path'], 'w',encoding='utf-8') as cf:
+        path=self.config.get('path')
+        times=int(self.config.get('times'))
+        while os.path.exists(path):
+            times+=1
+            path.replace(os.path.basename(path),'t'+times)
+
+        with open(path, 'w',encoding='utf-8') as cf:
             cf.writelines(arg)
             cf.close()
         return 'ok'
 
     def onSaveRomote(self,arg):
         par = json.loads(arg)
-        url = self.config['pathadd']
+        url = self.config.get('pathadd')
         try:
             # req = requests.post(url=url, data=par)
             # return req.content.decode('utf-8')
@@ -70,27 +73,51 @@ class MyServer(QtCore.QObject):
             req = request.Request(url=url, data=textmod)
             res = request.urlopen(req)
             res = res.read().encode(encoding='utf-8')
-            print(res)
             return res
         except Exception as e:
-            print(e)
             return 'error'
         finally:
             return 'error'
 
     def sendTo(self,arg):
-        if self.config['model']==2:
+        if self.config.get('model')==2:
             return self.onSaveLocal(arg)
         else:
             return self.onSaveRomote(arg)
 
+class ServerProxy:
 
+    def globalProxy(self,pro):
+        proxy = QtNetwork.QNetworkProxy()
+        # Http访问代理
+        proxy.setType(QtNetwork.QNetworkProxy.HttpProxy)
+        # 代理ip地址HttpProxy
+        # proxy.setHostName("211.159.177.212")
+        proxy.setHostName(pro['ip'])
+        # 端口号
+        # proxy.setPort(3128)
+        proxy.setPort(int(pro['port']))
+
+        if 'username' in pro and pro['username']!= None:
+            proxy.setUser(pro['username'])
+            proxy.setPassword(pro['password'])
+
+        QtNetwork.QNetworkProxy.setApplicationProxy(proxy)
+
+
+    # def localProxy(self,webview):
+    #         webview.page().proxyAuthenticationRequired.connect(self.__handleProxyAuthReq)
+    #
+    # def __handleProxyAuthReq(url, auth, proxyhost):
+    #     print(url, auth, proxyhost)
+        # auth.setUser('4')
+        # auth.setPassword('1')
 
 if __name__ == '__main__':
     import sys
     app = QtWidgets.QApplication(sys.argv)
     serverObject = QtWebSockets.QWebSocketServer('My Socket', QtWebSockets.QWebSocketServer.NonSecureMode)
     server = MyServer(serverObject)
-    server.onSave("fsfds")
+
     # serverObject.closed.connect(app.quit)
     app.exec_()
