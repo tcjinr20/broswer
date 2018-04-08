@@ -1,6 +1,6 @@
 
 from urllib import request
-from ipspy.ipcom import *
+
 import os
 def getAPNIC():
     url="http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest"
@@ -93,13 +93,17 @@ def saveIP(name,txt):
     else:
         foldnum[name]+=1
     fn = fold + "/" + name + ".txt"
-    ff = open(fn, 'w')
-    ff.writelines(txt)
+    ff = open(fn, 'a',encoding="utf-8")
+    ff.writelines([txt,'\r'])
+    ff.flush()
     ff.close()
 
 if __name__ == '__main__':
-    saveIpsection()
-
+    # saveIpsection()
+    ff = open("t.txt", 'a', encoding="utf-8")
+    ff.writelines(['123', '\n\r'])
+    ff.flush()
+    ff.close()
 
 
 

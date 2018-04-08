@@ -6,9 +6,10 @@ import time
 class ScanServer:
     def __init__(self):
         self.fold = ipspy.saveIpsection()
-        # self.fold={'CN': 15, 'HK': 3, 'PK': 0, 'AU': 0, 'JP': 2, 'IN': 0}
+        self.fold={'CN': 15, 'HK': 3, 'PK': 0, 'AU': 0, 'JP': 2, 'IN': 0}
         self.keys = list(self.fold.keys())
         self.cur = ''
+        # pass
 
     def getFile(self):
         if self.cur != '':
@@ -31,15 +32,24 @@ class ScanServer:
             return self.getFile()
 
     def goOn(self):
-        (a,b,c)=os.walk('/')
-        print(a,b,c)
+        path='ip'
+        for f in os.listdir('ip'):
+            with open(path+"/"+f) as fk:
+                pl=fk.readline(1024)
+                while pl:
+                    pl = fk.readline(1024)
+                    pl=pl.strip("\n")
+                    self.sartScan(pl,f)
+            os.remove(path+"/"+f)
 
-    def sartScan(self,line):
+
+    def sartScan(self,line,name):
         opts = {}
         opts['-p'] = 8080
         opts['-i'] = line
         opts['-t'] = 50
-        opts['-s'] = str(time.time())+'.txt'
+        opts['-s'] = "re/"+name
+        if not os.path.exists("re"):os.makedirs('re')
         sc = base.Scans(opts)
         sc.setB(self.scanBack)
         sc.start()

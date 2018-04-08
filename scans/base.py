@@ -51,8 +51,8 @@ class Scans(threading.Thread):
 		cui.i('Port: %s'%self._p)
 		cui.i('Thread: %s'%self._t)
 		self.scanports()
-		# self.scanproxy()
-		# self.result()
+		self.scanproxy()
+		self.result()
 
 	def scanports(self):
 		cui.w('Start scanning the open port\'s IP..')
