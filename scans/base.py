@@ -27,12 +27,14 @@ class Scans(threading.Thread):
 		self._r = []
 		self._s = ''
 		self._b=None
-
-		self._p = int(opts['-p'])
-		_temp = opts['-i'].split('-')
-		self._i = gen.gen(_temp[0], _temp[1])
-		self._t = int(opts['-t'])
-		self._s = opts['-s']
+		try:
+			self._p = int(opts['-p'])
+			_temp = opts['-i'].split('-')
+			self._i = gen.gen(_temp[0], _temp[1])
+			self._t = int(opts['-t'])
+			self._s = opts['-s']
+		except Exception as e:
+			raise e
 		if self._i is None:
 			self.usage()
 

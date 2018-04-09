@@ -3,20 +3,24 @@ from scans import base
 import os
 import time
 
+
 class ScanServer:
+
     def __init__(self):
-        self.fold = ipspy.saveIpsection()
-        self.fold={'CN': 15, 'HK': 3, 'PK': 0, 'AU': 0, 'JP': 2, 'IN': 0}
-        self.keys = list(self.fold.keys())
-        self.cur = ''
-        # pass
+        if len(os.listdir('ip')) > 0:
+            self.goOn()
+        else:
+            self.fold = ipspy.saveIpsection()
+            self.keys = list(self.fold.keys())
+            self.cur = ''
+            self.begin()
 
     def getFile(self):
         if self.cur != '':
             path = "ip/" + self.cur + "-" + str(self.fold[self.cur]) + ".txt"
-            if os.path.exists(path):os.remove(path)
+            if os.path.exists(path): os.remove(path)
             self.fold[self.cur] -= 1
-            if self.fold[self.cur]<=-1:
+            if self.fold[self.cur] <= -1:
                 self.fold.pop(self.cur)
             self.keys = list(self.fold.keys())
             print(path)
@@ -24,7 +28,7 @@ class ScanServer:
             return None
 
         self.cur = self.keys[0]
-        path="ip/" + self.cur + "-" + str(self.fold.get(self.cur)) + ".txt"
+        path = "ip/" + self.cur + "-" + str(self.fold.get(self.cur)) + ".txt"
         if os.path.exists(path):
             file = open(path, 'r')
             return file.readline()
@@ -32,30 +36,32 @@ class ScanServer:
             return self.getFile()
 
     def goOn(self):
-        path='ip'
+        path = 'ip'
         for f in os.listdir('ip'):
-            with open(path+"/"+f) as fk:
-                pl=fk.readline(1024)
+            with open(path + "/" + f) as fk:
+                pl = fk.readline(1024)
                 while pl:
                     pl = fk.readline(1024)
-                    pl=pl.strip("\n")
-                    self.sartScan(pl,f)
-            os.remove(path+"/"+f)
+                    pl = pl.strip("\n")
+                    self.sartScan(pl, f)
+            os.remove(path + "/" + f)
 
 
-    def sartScan(self,line,name):
+    def sartScan(self, line, name):
         opts = {}
         opts['-p'] = 8080
         opts['-i'] = line
-        opts['-t'] = 50
-        opts['-s'] = "re/"+name
-        if not os.path.exists("re"):os.makedirs('re')
-        sc = base.Scans(opts)
-        sc.setB(self.scanBack)
-        sc.start()
+        opts['-t'] = 100
+        opts['-s'] = "re/" + name
+        if not os.path.exists("re"): os.makedirs('re')
+        try:
+            sc = base.Scans(opts)
+            sc.setB(self.scanBack)
+            sc.start()
+        except Exception as e:
+            return
 
-
-    def scanBack(self,savefile):
+    def scanBack(self, savefile):
         if len(self.keys) <= 0:
             return None
         self.begin()
@@ -64,9 +70,9 @@ class ScanServer:
         line = self.getFile()
         if line is not None: self.sartScan(line)
 
+
 if __name__ == '__main__':
-    ScanServer().goOn()
-    # ScanServer().begin()
+    ScanServer()
 #
 # fold=ipspy.saveIpsection()
 # # fold={'CN': 10, 'HK': 1, 'PK': 0, 'AU': 0, 'JP': 2, 'IN': 0}
