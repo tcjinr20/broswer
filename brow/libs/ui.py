@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import *
 from PyQt5.uic import loadUi
+import os
 
 class CiQDialog(QDialog):
     def __init__(self,parent=None,config=None):
@@ -55,18 +56,43 @@ class CiSetting(CiQDialog):
     def _ci_show(self):
         print(self.config.get('mainurl'))
         self.findChild(QLineEdit, "mainurl").setText(self.config.get('mainurl'))
-        self.findChild(QLineEdit, "remote").setText(self.config.get('pathadd'))
-        self.findChild(QLineEdit, "local").setText(self.config.get('path'))
+        # self.findChild(QLineEdit, "remote").setText(self.config.get('pathadd'))
+        # self.findChild(QLineEdit, "local").setText(self.config.get('path'))
         self.findChild(QLineEdit, "script").setText(self.config.get('pathtxt'))
-        self.findChild(QRadioButton, "remotebtn").toggled.connect(self.changeRadio1)
+        self.findChild(QCheckBox, "openapi").setChecked(int(self.config.get('openapi')))
+
+        print(self.config.get('plug'))
+        plug= self.config.get('plug')
+        box=self.findChild(QComboBox,'plug')
+        box.addItem('')
+        fpath =os.getcwd() +os.sep+'plug'
+        currentindex=0
+        index=0
+        if os.path.exists(fpath):
+            dirs = os.listdir(fpath)
+            for n in dirs:
+                pb= fpath+os.sep+n
+                box.addItem(pb)
+                index+=1
+                if plug==pb:
+                    currentindex = index
+
+
+        else:
+            os.path.mkdir(fpath)
+
+        self.findChild(QComboBox, 'plug').setCurrentIndex(currentindex)
+
 
 
     def closeEvent(self, QCloseEvent):
         self.config.set('mainurl',self.findChild(QLineEdit, "mainurl").text())
-        self.config.set('pathadd',self.findChild(QLineEdit, "remote").text())
-        self.config.set('path',self.findChild(QLineEdit, "local").text())
         self.config.set('pathtxt',self.findChild(QLineEdit, "script").text())
 
+        state = self.findChild(QCheckBox, "openapi").checkState()
+        self.config.set('openapi', str(state))
+        path = self.findChild(QComboBox, 'plug').currentText()
+        self.config.set('plug',path)
         self.config.save()
         self.emit('close')
 

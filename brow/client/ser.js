@@ -3,6 +3,8 @@ code:1 保存临时数据 cookie
 code:2 获取临时数据 cookie
 code:3 保存永久数据
 code:4 获取永久数据
+code 5 保存文件
+code 6 读取文件
 */
 
 
@@ -67,6 +69,14 @@ code:4 获取永久数据
         pyemit({'code':4,"mess":JSON.stringify(obj)})
     }
 
+    function pyfile(path,txt){
+        if(txt){
+            pyemit({'code':5,"mess":JSON.stringify({'file':path,'content':txt})})
+        }else{
+            pyemit({'code':6,"mess":JSON.stringify({'file':path})})
+        }
+    }
+
     win.pyjs ={
         pyon:pyon,
         pyemit:pyemit,
@@ -74,6 +84,7 @@ code:4 获取永久数据
         pygetcookie:pygetcookie,
         pysetsession:pysetsession,
         pygetsession:pygetsession,
+        pyfile:pyfile,
         debug:debug
     }
 })(window)

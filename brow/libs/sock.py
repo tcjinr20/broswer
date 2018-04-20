@@ -140,6 +140,24 @@ class MyServer(QtCore.QObject):
                 self.sendto({'code':0,'mess':"缺少key"})
                 return
             self.sendto(self.session.get(str(mess['key'])))
+        elif code ==5:
+            if mess['file'] is None:
+                self.sendto({'code':0,'mess':u"缺少file"})
+                return
+
+            mess['content'] = open(mess['file'],'a+').write(mess['content'])
+            self.sendto(mess['file'])
+
+        elif code == 6:
+            if mess['file'] is None:
+                self.sendto({'code':0,'mess':"缺少file"})
+                return
+            if os.path.exists(mess['file']):
+                mess['content'] = open(mess['file'],'r').read(1024)
+                self.sendto(mess)
+            else:
+                self.sendto({'code': 0, 'mess': "文件不存在"+mess['file']})
+
 
 class ServerProxy:
 

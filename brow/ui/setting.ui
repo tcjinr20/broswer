@@ -19,30 +19,10 @@
      <x>0</x>
      <y>0</y>
      <width>411</width>
-     <height>111</height>
+     <height>331</height>
     </rect>
    </property>
    <layout class="QFormLayout" name="formLayout">
-    <item row="3" column="0">
-     <widget class="QRadioButton" name="remotebtn">
-      <property name="text">
-       <string>远程</string>
-      </property>
-      <property name="checked">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="0">
-     <widget class="QRadioButton" name="radioButton_2">
-      <property name="text">
-       <string>本地</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
     <item row="0" column="0">
      <widget class="QLabel" name="label">
       <property name="text">
@@ -53,19 +33,37 @@
     <item row="0" column="1">
      <widget class="QLineEdit" name="mainurl"/>
     </item>
-    <item row="3" column="1">
-     <widget class="QLineEdit" name="remote"/>
-    </item>
-    <item row="4" column="1">
-     <widget class="QLineEdit" name="local"/>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>嵌入脚本包</string>
+      </property>
+     </widget>
     </item>
     <item row="2" column="1">
      <widget class="QLineEdit" name="script"/>
     </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="label_2">
+    <item row="7" column="0">
+     <widget class="QLabel" name="label_3">
       <property name="text">
-       <string>javacript</string>
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="1">
+     <widget class="QComboBox" name="plug"/>
+    </item>
+    <item row="5" column="0">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>使用插件</string>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="1">
+     <widget class="QCheckBox" name="openapi">
+      <property name="text">
+       <string>开启本地api</string>
       </property>
      </widget>
     </item>

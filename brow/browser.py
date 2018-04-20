@@ -1,19 +1,13 @@
-# v1.2
-# created
-#   by Roger
-# in 2017.1.3
 
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtWebEngineWidgets import *
+from PyQt5.QtCore import Qt
 import configparser
-from lib.ui import CiSetting
-from PyQt5.QtWebChannel import QWebChannel
-import threading
+from libs.ui import CiSetting
 
-from PyQt5 import QtCore, QtWebSockets
-import lib.sock as sock
+import libs.sock as sock
 import os
 import sys
 from urllib import request
@@ -110,28 +104,37 @@ class MainWindow(QMainWindow):
         # self.browser.page().loadFinished.connect(self.get_html)
 
     def initdata(self):
-        self.browser.page()
+
         (self.server,self.obj)= sock.buildSocket(app)
-        # self.server.sendto("1111")
         # self.proxy= ser.ServerProxy()
         # self.proxy.globalProxy({'ip':'211.159.177.212','port':'3128'})
         # self.proxy.localProxy(self.browser)
-        pass
+
 
     def menu_setting(self):
 
         # if self.dia is None:
         self.dia = CiSetting(self, self.config)
-        # self.dia = CiSetting(self,self.config)
         self.dia.show()
-        self.dia.on('close',self.open)
+        self.dia.on('close',self.refresh)
+
+    def refresh(self):
+        # self.initdata()
+        self.open()
+
 
     def get_html(self):
-        txt = getCent(self.config.get('pathtxt'))
-        for t in txt.split("\r\n"):
-            if t != '':
-                js =getCent(t)
-                r=self.browser.page().runJavaScript(js)
+
+        plug = self.config.get('plug')
+        if plug is not '':
+            self.browser.page().runJavaScript(open(plug,'r').read())
+
+        if self.config.get('pathtxt') is not '':
+            txt = getCent()
+            for t in txt.split("\r\n"):
+                if t != '':
+                    js =getCent(t)
+                    r=self.browser.page().runJavaScript(js)
 
     def navigate_to_url(self):
         q = QUrl(self.urlbar.text())
@@ -158,11 +161,11 @@ class CiConfig():
         if self.config.has_section(self.default) is False:
             self.config.add_section(self.default)
             self.set("model", '2')
-            self.set("pathadd", 'http://www.baidu.com')
+            # self.set("pathadd", 'http://www.baidu.com')
             self.set("pathtxt", 'http://www.baidu.com/t.txt')
-            self.set("path", 'f/t.txt')
+            # self.set("path", 'f/t.txt')
             self.set("mainurl", 'http://www.1688.com')
-            self.set("times", '0')
+            # self.set("times", '0')
 
     def set(self,key,val):
         self.__change=True
@@ -182,11 +185,11 @@ if __name__ =="__main__":
 
     #建主窗口
     app = QApplication(sys.argv)
-
     window = MainWindow(CiConfig())
     window.show()
     sys.exit(app.exec_())
     # 显示窗口
+
 
     # 运行应用，并监听事件
 

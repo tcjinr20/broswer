@@ -7,8 +7,9 @@
 <script>
 pyjs.pyon('ready',function(){
     pyjs.debug('ready')
-    pyjs.pysetsession({'key':'12365','qwe':'123456'})
-    pyjs.pygetsession({'key':'12365'})
+//    pyjs.pysetsession({'key':'12365','qwe':'123456'})
+//    pyjs.pygetsession({'key':'12365'})
+    pyjs.pyfile('t.txt');
 })
 pyjs.pyon('message',function(d){
     pyjs.debug(d)
