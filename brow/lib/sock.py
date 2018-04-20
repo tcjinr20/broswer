@@ -19,7 +19,7 @@ def buildSocket(app):
 #
 
 class Cookie():
-    lib=[]
+    lib={}
     def set(self,key,value):
         self.lib[key]=value
     def get(self,key):
@@ -33,13 +33,16 @@ class Session():
         self.file = 'session.ini'
         self.config = configparser.ConfigParser()
         self.config.read(self.file)
+        if self.config.has_section(self.default) is False:
+            self.config.add_section(self.default)
 
     def set(self,key,val):
-        self.config.set(self.default,key,val)
+        self.config.set(self.default,key,json.dumps(val))
         self.config.write(open(self.file, "w"))
+        pass
 
     def get(self,key):
-        return self.config.get(self.default,key)
+        return json.loads(self.config.get(self.default,key))
 
 
 class MyServer(QtCore.QObject):
@@ -117,26 +120,26 @@ class MyServer(QtCore.QObject):
     def receive(self,arg):
         param=json.loads(arg)
         code = param['code'];
-        mess =param['mess']
+        mess =json.loads(param['mess'])
         if code==1:
             if mess['name'] is None:
                 self.sendto({'code':0,'mess':"缺少name"})
                 return
-            self.cookie.set(param['name'],param)
-        # elif param['code']==2:
-        #     if param['name'] is None:
-        #         self.sendto({'code':0,'mess':"缺少name"})
-        #     self.sendto(self.cookie.get(param['name']))
-        # elif param['code']==3:
-        #     if param['key'] is None:
-        #         self.sendto({'code':0,'mess':"缺少key"})
-        #         return
-        #     self.session.set(param['key'],param)
-        # elif param['code'] == 4:
-        #     if param['key'] is None:
-        #         self.sendto({'code':0,'mess':"缺少key"})
-        #         return
-        #     self.sendto(self.session.get(param['key']))
+            self.cookie.set(mess['name'],mess)
+        elif code==2:
+            if mess['name'] is None:
+                self.sendto({'code':0,'mess':"缺少name"})
+            self.sendto(self.cookie.get(mess['name']))
+        elif code==3:
+            if mess['key'] is None:
+                self.sendto({'code':0,'mess':"缺少key"})
+                return
+            self.session.set(str(mess['key']),mess)
+        elif code == 4:
+            if mess['key'] is None:
+                self.sendto({'code':0,'mess':"缺少key"})
+                return
+            self.sendto(self.session.get(str(mess['key'])))
 
 class ServerProxy:
 
